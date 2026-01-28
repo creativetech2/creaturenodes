@@ -9,9 +9,6 @@ from torchvision import transforms
 import base64
 import folder_paths
 
-
-client = genai.Client(api_key="AIzaSyBhlO6KobgBskI6Mh0IdUu-Rcs7fO5laAI")
-
 modelEnum = {
     "Gemini 3 Flash Preview": "gemini-3-flash-preview",
     "Gemini 2.5 Pro": "gemini-2.5-pro",
@@ -22,12 +19,40 @@ modelEnum = {
     "Gemini 3 Pro Image Preview": "gemini-3-pro-image-preview"
 }
 
+class GoogleGenAIClient:
+    CATEGORY = "CreatureNodes/Google"
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "api_key": ("STRING", {
+                    "multiline": False,
+                    "default": "",
+                })
+            }
+        }
+    RETURN_TYPES = ("ANY",)
+    RETURN_NAMES = ("google_genai_client",)
+    FUNCTION = "google_genai_client"
+    
+    def google_genai_client(self, api_key):
+        
+        if not api_key:
+            raise RuntimeError("Provide an api key")
+        
+        try:
+            client = genai.Client(api_key=api_key)
+            return (client,)
+        except Exception as e:
+            raise RuntimeError(f"Failed to configure Google GenAI API: {e}")
+
 class GoogleT2T:
     CATEGORY = "CreatureNodes/Google"
     @classmethod
     def INPUT_TYPES(s):
         return {
             "required": {
+                "google_genai_client": ("ANY",),
                 "model": (["Gemini 3 Flash Preview", "Gemini 2.5 Pro", "Gemini 2.5 Flash", "Gemini 2.0 Flash"],),
                 "system_prompt": ("STRING", {
                     "multiline": True
@@ -41,9 +66,9 @@ class GoogleT2T:
     RETURN_NAMES = ("generated_string",)
     FUNCTION = "google_t2t"
     
-    def google_t2t(self, model, system_prompt, user_prompt):
+    def google_t2t(self, google_genai_client, model, system_prompt, user_prompt):
         try:
-            response = client.models.generate_content(
+            response = google_genai_client.models.generate_content(
                 model=modelEnum[model],
                 config=types.GenerateContentConfig(
                     system_instruction=system_prompt
@@ -60,6 +85,7 @@ class GoogleT2I:
     def INPUT_TYPES(s):
         return {
             "required": { 
+                "google_genai_client": ("ANY",),
                 "model": (["Imagen 4", "Gemini 2.5 Flash Image", "Gemini 3 Pro Image Preview"],),
                 "aspect_ratio": (["1:1","2:3","3:2","3:4","4:3","4:5","5:4","9:16","16:9","21:9"],),
                 "image_size": (["1K", "2K", "4K"],),
@@ -72,10 +98,10 @@ class GoogleT2I:
     RETURN_NAMES = ("generated_image",)
     FUNCTION = "google_t2i"
     
-    def google_t2i(self, model, aspect_ratio, image_size, prompt):
+    def google_t2i(self, google_genai_client, model, aspect_ratio, image_size, prompt):
         try:
             if model in ["Imagen 4"]:
-                response = client.models.generate_images(
+                response = google_genai_client.models.generate_images(
                     model=modelEnum[model],
                     prompt=prompt,
                     config=types.GenerateImagesConfig(
@@ -95,9 +121,9 @@ class GoogleT2I:
 
             else:
                 # Use generate_content for other models
-                response = client.models.generate_content(
+                response = google_genai_client.models.generate_content(
                     model=modelEnum[model],
-                    contents=[prompt, *images],
+                    contents=prompt,
                     config=types.GenerateContentConfig(
                         response_modalities=["IMAGE"],
                         image_config=types.ImageConfig(
@@ -137,7 +163,8 @@ class GoogleI2I:
     @classmethod
     def INPUT_TYPES(s):
         return {
-            "required": { 
+            "required": {
+                "google_genai_client": ("ANY",),
                 "images": ("STRING",),
                 "model": (["Gemini 3 Pro Image Preview"],),
                 "aspect_ratio": (["1:1","2:3","3:2","3:4","4:3","4:5","5:4","9:16","16:9","21:9"],),
@@ -151,13 +178,13 @@ class GoogleI2I:
     RETURN_NAMES = ("generated_image",)
     FUNCTION = "google_i2i"
     
-    def google_i2i(self, images, model, aspect_ratio, image_size, prompt):
+    def google_i2i(self, google_genai_client, images, model, aspect_ratio, image_size, prompt):
         try:
             
             images = [Image.open(image) for image in images]
             
             # Use generate_content for other models
-            response = client.models.generate_content(
+            response = google_genai_client.models.generate_content(
                 model=modelEnum[model],
                 contents=[prompt, *images],
                 config=types.GenerateContentConfig(
@@ -198,10 +225,12 @@ NODE_CLASS_MAPPINGS = {
     "Google T2T": GoogleT2T,
     "Google T2I": GoogleT2I,
     "Google I2I": GoogleI2I,
+    "Google GenAI Client": GoogleGenAIClient,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "Google T2T": "Google T2T",
     "Google T2I": "Google T2I",
     "Google I2I": "Google I2I",
+    "Google GenAI Client": "Google GenAI Client"
 }

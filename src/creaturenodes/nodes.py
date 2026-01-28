@@ -1,0 +1,207 @@
+import torch
+from google import genai
+from google.genai import types
+from PIL import Image
+import io
+from io import BytesIO
+import numpy as np
+from torchvision import transforms
+import base64
+import folder_paths
+
+
+client = genai.Client(api_key="AIzaSyBhlO6KobgBskI6Mh0IdUu-Rcs7fO5laAI")
+
+modelEnum = {
+    "Gemini 3 Flash Preview": "gemini-3-flash-preview",
+    "Gemini 2.5 Pro": "gemini-2.5-pro",
+    "Gemini 2.5 Flash": "gemini-2.5-flash",
+    "Gemini 2.0 Flash": "gemini-2.0-flash",
+    "Imagen 4": "imagen-4.0-generate-001",
+    "Gemini 2.5 Flash Image": "gemini-2.5-flash-image",
+    "Gemini 3 Pro Image Preview": "gemini-3-pro-image-preview"
+}
+
+class GoogleT2T:
+    CATEGORY = "CreatureNodes/Google"
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "model": (["Gemini 3 Flash Preview", "Gemini 2.5 Pro", "Gemini 2.5 Flash", "Gemini 2.0 Flash"],),
+                "system_prompt": ("STRING", {
+                    "multiline": True
+                }),
+                "user_prompt": ("STRING", {
+                    "multiline": True
+                })
+            }
+        }
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("generated_string",)
+    FUNCTION = "google_t2t"
+    
+    def google_t2t(self, model, system_prompt, user_prompt):
+        try:
+            response = client.models.generate_content(
+                model=modelEnum[model],
+                config=types.GenerateContentConfig(
+                    system_instruction=system_prompt
+                ),
+                contents=user_prompt
+            )
+            return (response.text,)
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate text: {e.message}")
+
+class GoogleT2I:
+    CATEGORY = "CreatureNodes/Google"
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": { 
+                "model": (["Imagen 4", "Gemini 2.5 Flash Image", "Gemini 3 Pro Image Preview"],),
+                "aspect_ratio": (["1:1","2:3","3:2","3:4","4:3","4:5","5:4","9:16","16:9","21:9"],),
+                "image_size": (["1K", "2K", "4K"],),
+                "prompt": ("STRING", {
+                    "multiline": True
+                }),
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("generated_image",)
+    FUNCTION = "google_t2i"
+    
+    def google_t2i(self, model, aspect_ratio, image_size, prompt):
+        try:
+            if model in ["Imagen 4"]:
+                response = client.models.generate_images(
+                    model=modelEnum[model],
+                    prompt=prompt,
+                    config=types.GenerateImagesConfig(
+                        number_of_images=1,
+                        image_size=image_size,
+                        aspect_ratio=aspect_ratio
+                    )
+                )
+
+                # Extract raw bytes from generated_images
+                image_bytes = response.generated_images[0].image.image_bytes
+
+                # Convert bytes → PIL Image
+                image = Image.open(io.BytesIO(image_bytes))
+                if image.mode != "RGB":
+                    image = image.convert("RGB")
+
+            else:
+                # Use generate_content for other models
+                response = client.models.generate_content(
+                    model=modelEnum[model],
+                    contents=[prompt, *images],
+                    config=types.GenerateContentConfig(
+                        response_modalities=["IMAGE"],
+                        image_config=types.ImageConfig(
+                            aspect_ratio=aspect_ratio,
+                            image_size=image_size
+                        )
+                    )
+                )
+
+                # Extract the inline_data
+                image_parts = [part for part in response.parts if part.inline_data]
+                image_bytes = image_parts[0].inline_data.data
+
+                # Convert bytes → PIL Image
+                image = Image.open(io.BytesIO(image_bytes))
+                if image.mode != "RGB":
+                    image = image.convert("RGB")
+
+            # PIL → CHW tensor in [0,1]
+            image_tensor = transforms.ToTensor()(image)  # (3, H, W)
+
+            # CHW → HWC
+            image_tensor = image_tensor.permute(1, 2, 0)  # (H, W, 3)
+
+            # HWC → BHWC (batch dimension)
+            image_tensor = image_tensor.unsqueeze(0)  # (1, H, W, 3)
+
+            # Ensure float32
+            image_tensor = image_tensor.float()
+
+            return (image_tensor,)
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate image: {e}")
+
+class GoogleI2I:
+    CATEGORY = "CreatureNodes/Google"
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": { 
+                "images": ("STRING",),
+                "model": (["Gemini 3 Pro Image Preview"],),
+                "aspect_ratio": (["1:1","2:3","3:2","3:4","4:3","4:5","5:4","9:16","16:9","21:9"],),
+                "image_size": (["1K", "2K", "4K"],),
+                "prompt": ("STRING", {
+                    "multiline": True
+                }),
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("generated_image",)
+    FUNCTION = "google_i2i"
+    
+    def google_i2i(self, images, model, aspect_ratio, image_size, prompt):
+        try:
+            
+            images = [Image.open(image) for image in images]
+            
+            # Use generate_content for other models
+            response = client.models.generate_content(
+                model=modelEnum[model],
+                contents=[prompt, *images],
+                config=types.GenerateContentConfig(
+                    response_modalities=["IMAGE"],
+                    image_config=types.ImageConfig(
+                        aspect_ratio=aspect_ratio,
+                        image_size=image_size
+                    )
+                )
+            )
+
+            # Extract the inline_data
+            image_parts = [part for part in response.parts if part.inline_data]
+            image_bytes = image_parts[0].inline_data.data
+
+            # Convert bytes → PIL Image
+            image = Image.open(io.BytesIO(image_bytes))
+            if image.mode != "RGB":
+                image = image.convert("RGB")
+
+            # PIL → CHW tensor in [0,1]
+            image_tensor = transforms.ToTensor()(image)  # (3, H, W)
+
+            # CHW → HWC
+            image_tensor = image_tensor.permute(1, 2, 0)  # (H, W, 3)
+
+            # HWC → BHWC (batch dimension)
+            image_tensor = image_tensor.unsqueeze(0)  # (1, H, W, 3)
+
+            # Ensure float32
+            image_tensor = image_tensor.float()
+
+            return (image_tensor,)
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate image: {e}")
+
+NODE_CLASS_MAPPINGS = {
+    "Google T2T": GoogleT2T,
+    "Google T2I": GoogleT2I,
+    "Google I2I": GoogleI2I,
+}
+
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "Google T2T": "Google T2T",
+    "Google T2I": "Google T2I",
+    "Google I2I": "Google I2I",
+}

@@ -285,34 +285,37 @@ class I2IModelSwitch:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "selected_model": (["Lucy Edit V1.1 Dev"],)
+                "selected_model": (["LTX 2.0"],)
             },
             "optional": {
-                "lucy_edit_v11_dev": ("IMAGE", {"lazy": True}),
+                "ltx_20_image": ("IMAGE", {"lazy": True}),
+                "ltx_20_audio": ("AUDIO", {"lazy": True}),
             }
         }
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("image",)
+    RETURN_TYPES = ("IMAGE", "AUDIO",)
+    RETURN_NAMES = ("image", "audio",)
     FUNCTION = "i2i_model_switch"
     
     def check_lazy_status(
         self,
         selected_model,
-        lucy_edit_v11_dev=None,
+        ltx_20_image=None,
+        ltx_20_audio=None
     ):
         needed = []
-        if selected_model == "Lucy Edit V1.1 Dev":
-            if lucy_edit_v11_dev is None: needed.append("lucy_edit_v11_dev")
+        if selected_model == "LTX 2.0":
+            if ltx_20_image is None: needed.append("ltx_20_image")
+            if ltx_20_audio is None: needed.append("ltx_20_audio")
         
         return needed
     
-    def i2i_model_switch(self, selected_model, lucy_edit_v11_dev=None):
+    def i2i_model_switch(self, selected_model, ltx_20_image=None, ltx_20_audio=None):
         
         modelEnum = {
-            'Lucy Edit V1.1 Dev': lucy_edit_v11_dev,
+            'LTX 2.0': (ltx_20_image, ltx_20_audio,),
         }
         
-        return (modelEnum[selected_model], )
+        return modelEnum[selected_model]
 
 NODE_CLASS_MAPPINGS = {
     "Google T2T": GoogleT2T,

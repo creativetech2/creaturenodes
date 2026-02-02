@@ -235,43 +235,46 @@ class ModelSwitch:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "selected_model": (["SD3.5", "SDXL"],)
+                "selected_model": (["SD3.5", "SDXL", "Z IMAGE"],)
             },
             "optional": {
-                "sd35_latent": ("LATENT", {"lazy": True}),
-                "sd35_vae": ("VAE", {"lazy": True}),
+                "sd35": ("IMAGE", {"lazy": True}),
                 
-                "sdxl_latent": ("LATENT", {"lazy": True}),
-                "sdxl_vae": ("VAE", {"lazy": True}),
+                "sdxl": ("IMAGE", {"lazy": True}),
+                
+                "z_image": ("IMAGE", {"lazy": True}),
             }
         }
-    RETURN_TYPES = ("LATENT", "VAE",)
-    RETURN_NAMES = ("latent", "vae",)
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
     FUNCTION = "model_switch"
     
     def check_lazy_status(
         self,
         selected_model,
-        sd35_latent=None, sd35_vae=None,
-        sdxl_latent=None, sdxl_vae=None,
+        sd35=None,
+        sdxl=None, 
+        z_image=None
     ):
         needed = []
         if selected_model == "SD3.5":
-            if sd35_latent is None: needed.append("sd35_latent")
-            if sd35_vae    is None: needed.append("sd35_vae")
-        else:
-            if sdxl_latent is None: needed.append("sdxl_latent")
-            if sdxl_vae    is None: needed.append("sdxl_vae")
+            if sd35 is None: needed.append("sd35")
+        elif selected_model == "SDXL":
+            if sdxl is None: needed.append("sdxl")
+        elif selected_model == "Z IMAGE":
+            if z_image is None: needed.append("z_image")
+        
         return needed
     
-    def model_switch(self, selected_model, sd35_latent=None, sd35_vae=None, sdxl_latent=None, sdxl_vae=None):
+    def model_switch(self, selected_model, sd35=None, sdxl=None, z_image=None):
         
         modelEnum = {
-            'SD3.5': (sd35_latent, sd35_vae,),
-            'SDXL': (sdxl_latent, sdxl_vae,),
+            'SD3.5': sd35,
+            'SDXL': sdxl,
+            'Z IMAGE': z_image
         }
         
-        return modelEnum[selected_model]
+        return (modelEnum[selected_model], )
 
 NODE_CLASS_MAPPINGS = {
     "Google T2T": GoogleT2T,

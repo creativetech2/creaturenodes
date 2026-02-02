@@ -253,7 +253,8 @@ class ModelSwitch:
         selected_model,
         sd35=None,
         sdxl=None, 
-        z_image=None
+        z_image=None,
+        flux2_klein=None
     ):
         needed = []
         if selected_model == "SD3.5":

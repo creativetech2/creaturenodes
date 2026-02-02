@@ -19,6 +19,10 @@ modelEnum = {
     "Gemini 3 Pro Image Preview": "gemini-3-pro-image-preview"
 }
 
+"""
+Google API Nodes to image generation
+"""
+
 class GoogleGenAIClient:
     CATEGORY = "CreatureNodes/Google"
     @classmethod
@@ -62,8 +66,8 @@ class GoogleT2T:
                 })
             }
         }
-    RETURN_TYPES = ("STRING",)
-    RETURN_NAMES = ("generated_string",)
+    RETURN_TYPES = ("STRING", "ANY",)
+    RETURN_NAMES = ("generated_string", "google_genai_client,")
     FUNCTION = "google_t2t"
     
     def google_t2t(self, google_genai_client, model, system_prompt, user_prompt):
@@ -75,7 +79,7 @@ class GoogleT2T:
                 ),
                 contents=user_prompt
             )
-            return (response.text,)
+            return (response.text, google_genai_client,)
         except Exception as e:
             raise RuntimeError(f"Failed to generate text: {e.message}")
 
@@ -94,8 +98,8 @@ class GoogleT2I:
                 }),
             }
         }
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("generated_image",)
+    RETURN_TYPES = ("IMAGE", "ANY")
+    RETURN_NAMES = ("generated_image", "google_genai_client")
     FUNCTION = "google_t2i"
     
     def google_t2i(self, google_genai_client, model, aspect_ratio, image_size, prompt):
@@ -154,7 +158,7 @@ class GoogleT2I:
             # Ensure float32
             image_tensor = image_tensor.float()
 
-            return (image_tensor,)
+            return (image_tensor, google_genai_client,)
         except Exception as e:
             raise RuntimeError(f"Failed to generate image: {e}")
 
@@ -174,8 +178,8 @@ class GoogleI2I:
                 }),
             }
         }
-    RETURN_TYPES = ("IMAGE",)
-    RETURN_NAMES = ("generated_image",)
+    RETURN_TYPES = ("IMAGE", "ANY",)
+    RETURN_NAMES = ("generated_image", "google_genai_client",)
     FUNCTION = "google_i2i"
     
     def google_i2i(self, google_genai_client, images, model, aspect_ratio, image_size, prompt):
@@ -217,20 +221,70 @@ class GoogleI2I:
             # Ensure float32
             image_tensor = image_tensor.float()
 
-            return (image_tensor,)
+            return (image_tensor,google_genai_client,)
         except Exception as e:
             raise RuntimeError(f"Failed to generate image: {e}")
+
+"""
+Model Switch node for image generation
+"""
+
+class ModelSwitch:
+    CATEGORY = "CreatureNodes/Utils"
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "selected_model": (["SD3.5", "SDXL"],)
+            },
+            "optional": {
+                "sd35_latent": ("LATENT", {"lazy": True}),
+                "sd35_vae": ("VAE", {"lazy": True}),
+                
+                "sdxl_latent": ("LATENT", {"lazy": True}),
+                "sdxl_vae": ("VAE", {"lazy": True}),
+            }
+        }
+    RETURN_TYPES = ("LATENT", "VAE",)
+    RETURN_NAMES = ("latent", "vae",)
+    FUNCTION = "model_switch"
+    
+    def check_lazy_status(
+        self,
+        selected_model,
+        sd35_latent=None, sd35_vae=None,
+        sdxl_latent=None, sdxl_vae=None,
+    ):
+        needed = []
+        if selected_model == "SD3.5":
+            if sd35_latent is None: needed.append("sd35_latent")
+            if sd35_vae    is None: needed.append("sd35_vae")
+        else:
+            if sdxl_latent is None: needed.append("sdxl_latent")
+            if sdxl_vae    is None: needed.append("sdxl_vae")
+        return needed
+    
+    def model_switch(self, selected_model, sd35_latent=None, sd35_vae=None, sdxl_latent=None, sdxl_vae=None):
+        
+        modelEnum = {
+            'SD3.5': (sd35_latent, sd35_vae,),
+            'SDXL': (sdxl_latent, sdxl_vae,),
+        }
+        
+        return modelEnum[selected_model]
 
 NODE_CLASS_MAPPINGS = {
     "Google T2T": GoogleT2T,
     "Google T2I": GoogleT2I,
     "Google I2I": GoogleI2I,
     "Google GenAI Client": GoogleGenAIClient,
+    "Model Switch": ModelSwitch,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
     "Google T2T": "Google T2T",
     "Google T2I": "Google T2I",
     "Google I2I": "Google I2I",
-    "Google GenAI Client": "Google GenAI Client"
+    "Google GenAI Client": "Google GenAI Client",
+    "Model Switch": "Model Switch",
 }

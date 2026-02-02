@@ -229,8 +229,8 @@ class GoogleI2I:
 Model Switch node for image generation
 """
 
-class ModelSwitch:
-    CATEGORY = "CreatureNodes/Utils"
+class T2IModelSwitch:
+    CATEGORY = "CreatureNodes/Switches"
     @classmethod
     def INPUT_TYPES(s):
         return {
@@ -246,7 +246,7 @@ class ModelSwitch:
         }
     RETURN_TYPES = ("IMAGE",)
     RETURN_NAMES = ("image",)
-    FUNCTION = "model_switch"
+    FUNCTION = "t2i_model_switch"
     
     def check_lazy_status(
         self,
@@ -268,7 +268,7 @@ class ModelSwitch:
         
         return needed
     
-    def model_switch(self, selected_model, sd35=None, sdxl=None, z_image=None, flux2_klein=None):
+    def t2i_model_switch(self, selected_model, sd35=None, sdxl=None, z_image=None, flux2_klein=None):
         
         modelEnum = {
             'SD3.5': sd35,
@@ -279,12 +279,48 @@ class ModelSwitch:
         
         return (modelEnum[selected_model], )
 
+class I2IModelSwitch:
+    CATEGORY = "CreatureNodes/Switches"
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "selected_model": (["Lucy Edit V1.1 Dev"],)
+            },
+            "optional": {
+                "lucy_edit_v11_dev": ("IMAGE", {"lazy": True}),
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "i2i_model_switch"
+    
+    def check_lazy_status(
+        self,
+        selected_model,
+        lucy_edit_v11_dev=None,
+    ):
+        needed = []
+        if selected_model == "Lucy Edit V1.1 Dev":
+            if lucy_edit_v11_dev is None: needed.append("lucy_edit_v11_dev")
+        
+        return needed
+    
+    def i2i_model_switch(self, selected_model, lucy_edit_v11_dev=None):
+        
+        modelEnum = {
+            'Lucy Edit V1.1 Dev': lucy_edit_v11_dev,
+        }
+        
+        return (modelEnum[selected_model], )
+
 NODE_CLASS_MAPPINGS = {
     "Google T2T": GoogleT2T,
     "Google T2I": GoogleT2I,
     "Google I2I": GoogleI2I,
     "Google GenAI Client": GoogleGenAIClient,
-    "Model Switch": ModelSwitch,
+    "T2I Model Switch": T2IModelSwitch,
+    "I2I Model Switch": I2IModelSwitch
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -292,5 +328,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Google T2I": "Google T2I",
     "Google I2I": "Google I2I",
     "Google GenAI Client": "Google GenAI Client",
-    "Model Switch": "Model Switch",
+    "T2I Model Switch": "T2I Model Switch",
+    "I2I Model Switch": "I2I Model Switch"
 }

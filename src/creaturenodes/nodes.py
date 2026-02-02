@@ -235,14 +235,13 @@ class ModelSwitch:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "selected_model": (["SD3.5", "SDXL", "Z IMAGE"],)
+                "selected_model": (["SD3.5", "SDXL", "Z IMAGE", "Flux2 Klein"],)
             },
             "optional": {
                 "sd35": ("IMAGE", {"lazy": True}),
-                
                 "sdxl": ("IMAGE", {"lazy": True}),
-                
                 "z_image": ("IMAGE", {"lazy": True}),
+                "flux2_klein": ("IMAGE", {"lazy": True}),
             }
         }
     RETURN_TYPES = ("IMAGE",)
@@ -263,15 +262,18 @@ class ModelSwitch:
             if sdxl is None: needed.append("sdxl")
         elif selected_model == "Z IMAGE":
             if z_image is None: needed.append("z_image")
+        elif selected_model == "Flux2 Klein":
+            if z_image is None: needed.append("flux2_klein")
         
         return needed
     
-    def model_switch(self, selected_model, sd35=None, sdxl=None, z_image=None):
+    def model_switch(self, selected_model, sd35=None, sdxl=None, z_image=None, flux2_klein=None):
         
         modelEnum = {
             'SD3.5': sd35,
             'SDXL': sdxl,
-            'Z IMAGE': z_image
+            'Z IMAGE': z_image,
+            'Flux2 Klein': flux2_klein
         }
         
         return (modelEnum[selected_model], )

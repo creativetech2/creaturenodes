@@ -352,6 +352,9 @@ class I2IModelSwitch:
             "Flux1 Kontext": flux1_kontext
         }
         
+        print(f"Selected model: {selected_model}")
+        print(f"Outputting: {modelEnum[selected_model]}")
+        
         return (modelEnum[selected_model],)
     
 class LMST2T:

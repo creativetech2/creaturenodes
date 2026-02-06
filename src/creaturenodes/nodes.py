@@ -341,6 +341,7 @@ class I2IModelSwitch:
         needed = []
         if selected_model == "Flux1 Dev Uso":
             if flux1_dev_uso is None: needed.append("flux1_dev_uso")
+        elif selected_model == "Flux1 Kontext":
             if flux1_kontext is None: needed.append("flux1_kontext")
         
         return needed
@@ -351,9 +352,6 @@ class I2IModelSwitch:
             "Flux1 Dev Uso": flux1_dev_uso,
             "Flux1 Kontext": flux1_kontext
         }
-        
-        print(f"Selected model: {selected_model}")
-        print(f"Outputting: {modelEnum[selected_model]}")
         
         return (modelEnum[selected_model],)
     

@@ -322,6 +322,8 @@ class LMST2T:
         return {
             "required": {
                 "prompt": ("STRING",),
+                "system_prompt": ("STRING",),
+                "model": (["IBM Granite 4 Micro", "Gemma 3 1B"],),
                 "port": ("INT", {
                     "default": 1234
                 })
@@ -331,14 +333,18 @@ class LMST2T:
     RETURN_NAMES = ("output",)
     FUNCTION = "t2t_lms"
     
-    def t2t_lms(self, prompt, port):
+    def t2t_lms(self, prompt, system_prompt, model, port):
+        
+        modelEnum = {
+            "IBM Granite 4 Micro": "ibm/granite-4-micro",
+            "Gemma 3 1B": "google/gemma-3-1b"
+        }
+        
         response = requests.post(f'http://localhost:{port}/api/v1/chat', json={
-            "model": "ibm/granite-4-micro",
+            "model": modelEnum[model],
+            "system_prompt": system_prompt,
             "input": prompt
         })
-        
-        print(response.json())
-        print(response.json()['output'][0]['content'])
         
         return (response.json()['output'][0]['content'],)
 

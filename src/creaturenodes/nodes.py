@@ -322,7 +322,9 @@ class LMST2T:
         return {
             "required": {
                 "prompt": ("STRING",),
-                "system_prompt": ("STRING",),
+                "system_prompt": ("STRING", {
+                    "multiline": True
+                }),
                 "model": (["IBM Granite 4 Micro", "Gemma 3 1B"],),
                 "port": ("INT", {
                     "default": 1234

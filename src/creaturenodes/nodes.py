@@ -1,4 +1,3 @@
-import torch
 from google import genai
 from google.genai import types
 from PIL import Image
@@ -6,8 +5,7 @@ import io
 from io import BytesIO
 import numpy as np
 from torchvision import transforms
-import base64
-import folder_paths
+import requests
 
 modelEnum = {
     "Gemini 3 Flash Preview": "gemini-3-flash-preview",
@@ -317,13 +315,41 @@ class I2IModelSwitch:
         
         return modelEnum[selected_model]
 
+class LMST2T:
+    CATEGORY = "CreatureNodes/LM Studio"
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "prompt": ("STRING",),
+                "port": ("INT", {
+                    "default": 1234
+                })
+            }
+        }
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("output",)
+    FUNCTION = "t2t_lms"
+    
+    def t2t_lms(self, prompt, port):
+        response = requests.post(f'http://localhost:{port}/api/v1/chat', json={
+            "model": "ibm/granite-4-micro",
+            "input": prompt
+        })
+        
+        print(response.json())
+        print(response.json()['output'][0]['content'])
+        
+        return (response.json()['output'][0]['content'],)
+
 NODE_CLASS_MAPPINGS = {
     "Google T2T": GoogleT2T,
     "Google T2I": GoogleT2I,
     "Google I2I": GoogleI2I,
     "Google GenAI Client": GoogleGenAIClient,
     "T2I Model Switch": T2IModelSwitch,
-    "I2I Model Switch": I2IModelSwitch
+    "I2I Model Switch": I2IModelSwitch,
+    "LM Studio T2T": LMST2T
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -332,5 +358,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Google I2I": "Google I2I",
     "Google GenAI Client": "Google GenAI Client",
     "T2I Model Switch": "T2I Model Switch",
-    "I2I Model Switch": "I2I Model Switch"
+    "I2I Model Switch": "I2I Model Switch",
+    "LM Studio T2T": "LM Studio T2T"
 }

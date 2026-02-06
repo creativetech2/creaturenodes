@@ -277,7 +277,7 @@ class T2IModelSwitch:
         
         return (modelEnum[selected_model], )
 
-class I2IModelSwitch:
+class I2VModelSwitch:
     CATEGORY = "CreatureNodes/Switches"
     @classmethod
     def INPUT_TYPES(s):
@@ -292,7 +292,7 @@ class I2IModelSwitch:
         }
     RETURN_TYPES = ("IMAGE", "AUDIO",)
     RETURN_NAMES = ("image", "audio",)
-    FUNCTION = "i2i_model_switch"
+    FUNCTION = "i2v_model_switch"
     
     def check_lazy_status(
         self,
@@ -307,7 +307,7 @@ class I2IModelSwitch:
         
         return needed
     
-    def i2i_model_switch(self, selected_model, ltx_20_image=None, ltx_20_audio=None):
+    def i2v_model_switch(self, selected_model, ltx_20_image=None, ltx_20_audio=None):
         
         modelEnum = {
             'LTX 2.0': (ltx_20_image, ltx_20_audio,),
@@ -315,6 +315,45 @@ class I2IModelSwitch:
         
         return modelEnum[selected_model]
 
+class I2IModelSwitch:
+    CATEGORY = "CreatureNodes/Switches"
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "selected_model": (["Flux1 Dev Uso", "Flux1 Kontext"],)
+            },
+            "optional": {
+                "flux1_dev_uso": ("IMAGE", {"lazy": True}),
+                "flux1_kontext": ("AUDIO", {"lazy": True}),
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "i2i_model_switch"
+    
+    def check_lazy_status(
+        self,
+        selected_model,
+        flux1_dev_uso=None,
+        flux1_kontext=None
+    ):
+        needed = []
+        if selected_model == "Flux1 Dev Uso":
+            if flux1_dev_uso is None: needed.append("flux1_dev_uso")
+            if flux1_kontext is None: needed.append("flux1_kontext")
+        
+        return needed
+    
+    def i2i_model_switch(self, selected_model, flux1_dev_uso, flux1_kontext):
+        
+        modelEnum = {
+            "Flux1 Dev Uso": flux1_dev_uso,
+            "Flux1 Kontext": flux1_kontext
+        }
+        
+        return (modelEnum[selected_model],)
+    
 class LMST2T:
     CATEGORY = "CreatureNodes/LM Studio"
     @classmethod
@@ -356,6 +395,7 @@ NODE_CLASS_MAPPINGS = {
     "Google I2I": GoogleI2I,
     "Google GenAI Client": GoogleGenAIClient,
     "T2I Model Switch": T2IModelSwitch,
+    "I2V Model Switch": I2VModelSwitch,
     "I2I Model Switch": I2IModelSwitch,
     "LM Studio T2T": LMST2T
 }
@@ -366,6 +406,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "Google I2I": "Google I2I",
     "Google GenAI Client": "Google GenAI Client",
     "T2I Model Switch": "T2I Model Switch",
+    "I2V Model Switch": "I2V Model Switch",
     "I2I Model Switch": "I2I Model Switch",
     "LM Studio T2T": "LM Studio T2T"
 }

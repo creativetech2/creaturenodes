@@ -325,7 +325,7 @@ class I2IModelSwitch:
             },
             "optional": {
                 "flux1_dev_uso": ("IMAGE", {"lazy": True}),
-                "flux1_kontext": ("AUDIO", {"lazy": True}),
+                "flux1_kontext": ("IMAGE", {"lazy": True}),
             }
         }
     RETURN_TYPES = ("IMAGE",)

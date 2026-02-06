@@ -342,7 +342,7 @@ class LMST2T:
         
         response = requests.post(f'http://localhost:{port}/api/v1/chat', json={
             "model": modelEnum[model],
-            "system_prompt": f"You're an AI agent, whos purpose is to transform user prompts into prompts optimised for the {gen_model} generation model",
+            "system_prompt": f"You're an AI agent, whos purpose is to transform user prompts into prompts optimised for the {gen_model} generation model. You are to only output the optimised prompt, nothing else.",
             "input": prompt
         })
         

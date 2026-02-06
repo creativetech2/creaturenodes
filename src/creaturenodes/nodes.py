@@ -345,7 +345,7 @@ class I2IModelSwitch:
         
         return needed
     
-    def i2i_model_switch(self, selected_model, flux1_dev_uso, flux1_kontext):
+    def i2i_model_switch(self, selected_model, flux1_dev_uso=None, flux1_kontext=None):
         
         modelEnum = {
             "Flux1 Dev Uso": flux1_dev_uso,

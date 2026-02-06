@@ -322,7 +322,7 @@ class LMST2T:
         return {
             "required": {
                 "prompt": ("STRING",),
-                "system_prompt": ("STRING",),
+                "gen_model": ("STRING",),
                 "model": (["IBM Granite 4 Micro", "Gemma 3 1B"],),
                 "port": ("INT", {
                     "default": 1234
@@ -333,7 +333,7 @@ class LMST2T:
     RETURN_NAMES = ("output",)
     FUNCTION = "t2t_lms"
     
-    def t2t_lms(self, prompt, system_prompt, model, port):
+    def t2t_lms(self, prompt, gen_model, model, port):
         
         modelEnum = {
             "IBM Granite 4 Micro": "ibm/granite-4-micro",
@@ -342,7 +342,7 @@ class LMST2T:
         
         response = requests.post(f'http://localhost:{port}/api/v1/chat', json={
             "model": modelEnum[model],
-            "system_prompt": system_prompt,
+            "system_prompt": f"You're an AI agent, whos purpose is to transform user prompts into prompts optimised for the {gen_model} generation model",
             "input": prompt
         })
         

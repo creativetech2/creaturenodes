@@ -402,7 +402,7 @@ class LMSI2T:
                 "system_prompt": ("STRING", {
                     "multiline": True
                 }),
-                "model": (["IBM Granite 4 Micro", "Gemma 3 1B"],),
+                "model": (["Gemma 3n 4B"],),
                 "port": ("INT", {
                     "default": 1234
                 })
@@ -415,8 +415,7 @@ class LMSI2T:
     def i2t_lms(self, prompt, image, system_prompt, model, port):
         
         modelEnum = {
-            "IBM Granite 4 Micro": "ibm/granite-4-micro",
-            "Gemma 3 1B": "google/gemma-3-1b"
+            "Gemma 3n 4B": "google/gemma-3n",
         }
         
         # Convert image tensor to PIL
@@ -430,8 +429,6 @@ class LMSI2T:
         # Encode to base64
         img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
         data_url = f"data:image/png;base64,{img_str}"
-        
-        print(f"Data url: {data_url}")
         
         response = requests.post(f'http://localhost:{port}/api/v1/chat', json={
             "model": modelEnum[model],
@@ -448,7 +445,8 @@ class LMSI2T:
             ]
         })
         
-        print(response.json())
+        if response.json()['error']:
+            raise RuntimeError(response.json()['error']['message'])
         
         return (response.json()['output'][0]['content'],)
 

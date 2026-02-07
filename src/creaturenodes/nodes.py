@@ -389,7 +389,12 @@ class LMST2T:
             "input": prompt
         })
         
-        return (response.json()['output'][0]['content'],)
+        response_data = response.json()
+        
+        if 'error' in response_data and response_data['error']:
+            raise RuntimeError(response_data['error']['message'])
+        
+        return (response_data['output'][-1]['content'],)
 
 class LMSI2T:
     CATEGORY = "CreatureNodes/LM Studio"
@@ -443,16 +448,14 @@ class LMSI2T:
                     "data_url": data_url
                 }
             ]
-        }, headers={
-            "Accept": "application/json"
         })
         
-        print(response.json())
+        response_data = response.json()
         
-        if response.json()['error']:
-            raise RuntimeError(response.json()['error']['message'])
+        if 'error' in response_data and response_data['error']:
+            raise RuntimeError(response_data['error']['message'])
         
-        return (response.json()['output'][len(response.json()['output']) - 1]['content'],)
+        return (response_data['output'][-1]['content'],)
 
 NODE_CLASS_MAPPINGS = {
     "Google T2T": GoogleT2T,

@@ -415,7 +415,7 @@ class LMSI2T:
     def i2t_lms(self, prompt, image, system_prompt, model, port):
         
         modelEnum = {
-            "Gemma 3n 4B": "google/gemma-3n",
+            "Gemma 3n 4B": "google/gemma-3n-e4b",
         }
         
         # Convert image tensor to PIL

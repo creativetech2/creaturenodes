@@ -445,6 +445,8 @@ class LMSI2T:
             ]
         })
         
+        print(response.json())
+        
         if response.json()['error']:
             raise RuntimeError(response.json()['error']['message'])
         

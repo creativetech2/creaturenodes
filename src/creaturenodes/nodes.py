@@ -402,7 +402,7 @@ class LMSI2T:
                 "system_prompt": ("STRING", {
                     "multiline": True
                 }),
-                "model": (["Gemma 3n 4B"],),
+                "model": (["GLM 4.6V Flash"],),
                 "port": ("INT", {
                     "default": 1234
                 })
@@ -415,7 +415,7 @@ class LMSI2T:
     def i2t_lms(self, prompt, image, system_prompt, model, port):
         
         modelEnum = {
-            "Gemma 3n 4B": "google/gemma-3n-e4b",
+            "GLM 4.6V Flash": "zai-org/glm-4.6v-flash"
         }
         
         # Convert image tensor to PIL
@@ -448,7 +448,7 @@ class LMSI2T:
         if response.json()['error']:
             raise RuntimeError(response.json()['error']['message'])
         
-        return (response.json()['output'][0]['content'],)
+        return (response.json()['output'][len(response.json()['output']) - 1]['content'],)
 
 NODE_CLASS_MAPPINGS = {
     "Google T2T": GoogleT2T,

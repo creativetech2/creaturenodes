@@ -431,6 +431,8 @@ class LMSI2T:
         img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
         data_url = f"data:image/png;base64,{img_str}"
         
+        print(f"Data url: {data_url}")
+        
         response = requests.post(f'http://localhost:{port}/api/v1/chat', json={
             "model": modelEnum[model],
             "system_prompt": system_prompt,

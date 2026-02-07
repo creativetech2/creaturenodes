@@ -6,6 +6,7 @@ from io import BytesIO
 import numpy as np
 from torchvision import transforms
 import requests
+import base64
 
 modelEnum = {
     "Gemini 3 Flash Preview": "gemini-3-flash-preview",
@@ -390,6 +391,63 @@ class LMST2T:
         
         return (response.json()['output'][0]['content'],)
 
+class LMSI2T:
+    CATEGORY = "CreatureNodes/LM Studio"
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "prompt": ("STRING",),
+                "image": ("IMAGE",),
+                "system_prompt": ("STRING", {
+                    "multiline": True
+                }),
+                "model": (["IBM Granite 4 Micro", "Gemma 3 1B"],),
+                "port": ("INT", {
+                    "default": 1234
+                })
+            }
+        }
+    RETURN_TYPES = ("STRING",)
+    RETURN_NAMES = ("output",)
+    FUNCTION = "i2t_lms"
+    
+    def i2t_lms(self, prompt, image, system_prompt, model, port):
+        
+        modelEnum = {
+            "IBM Granite 4 Micro": "ibm/granite-4-micro",
+            "Gemma 3 1B": "google/gemma-3-1b"
+        }
+        
+        # Convert image tensor to PIL
+        i = 255. * image[0].cpu().numpy()
+        img = Image.fromarray(np.clip(i, 0, 255).astype(np.uint8))
+        
+        # Save to buffer
+        buffer = io.BytesIO()
+        img.save(buffer, format="PNG")
+        
+        # Encode to base64
+        img_str = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        data_url = f"data:image/png;base64,{img_str}"
+        
+        response = requests.post(f'http://localhost:{port}/api/v1/chat', json={
+            "model": modelEnum[model],
+            "system_prompt": system_prompt,
+            "input": [
+                {
+                    "type": "text",
+                    "content": prompt
+                },
+                {
+                    "type": "image",
+                    "data_url": data_url
+                }
+            ]
+        })
+        
+        return (response.json()['output'][0]['content'],)
+
 NODE_CLASS_MAPPINGS = {
     "Google T2T": GoogleT2T,
     "Google T2I": GoogleT2I,
@@ -398,7 +456,8 @@ NODE_CLASS_MAPPINGS = {
     "T2I Model Switch": T2IModelSwitch,
     "I2V Model Switch": I2VModelSwitch,
     "I2I Model Switch": I2IModelSwitch,
-    "LM Studio T2T": LMST2T
+    "LM Studio T2T": LMST2T,
+    "LM Studio I2T": LMSI2T
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
@@ -409,5 +468,6 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "T2I Model Switch": "T2I Model Switch",
     "I2V Model Switch": "I2V Model Switch",
     "I2I Model Switch": "I2I Model Switch",
-    "LM Studio T2T": "LM Studio T2T"
+    "LM Studio T2T": "LM Studio T2T",
+    "LM Studio I2T": "LM Studio I2T"
 }

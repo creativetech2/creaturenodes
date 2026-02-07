@@ -446,6 +446,8 @@ class LMSI2T:
             ]
         })
         
+        print(response.json())
+        
         return (response.json()['output'][0]['content'],)
 
 NODE_CLASS_MAPPINGS = {

@@ -443,6 +443,8 @@ class LMSI2T:
                     "data_url": data_url
                 }
             ]
+        }, headers={
+            "Accept": "application/json"
         })
         
         print(response.json())

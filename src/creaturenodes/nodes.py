@@ -355,6 +355,41 @@ class I2IModelSwitch:
         }
         
         return (modelEnum[selected_model],)
+
+class ImageEditingModelSwitch:
+    CATEGORY = "CreatureNodes/Switches"
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "selected_model": (["Lucy Edit V1.1 Dev"],)
+            },
+            "optional": {
+                "lucy_edit_v11_dev": ("IMAGE", {"lazy": True}),
+            }
+        }
+    RETURN_TYPES = ("IMAGE",)
+    RETURN_NAMES = ("image",)
+    FUNCTION = "image_editing_model_switch"
+    
+    def check_lazy_status(
+        self,
+        selected_model,
+        lucy_edit_v11_dev=None
+    ):
+        needed = []
+        if selected_model == "Lucy Edit V1.1 Dev":
+            if lucy_edit_v11_dev is None: needed.append("lucy_edit_v11_dev")
+        
+        return needed
+    
+    def image_editing_model_switch(self, selected_model, lucy_edit_v11_dev=None):
+        
+        modelEnum = {
+            "Lucy Edit V1.1 Dev": lucy_edit_v11_dev
+        }
+        
+        return (modelEnum[selected_model],)
     
 class LMST2T:
     CATEGORY = "CreatureNodes/LM Studio"
@@ -465,6 +500,7 @@ NODE_CLASS_MAPPINGS = {
     "T2I Model Switch": T2IModelSwitch,
     "I2V Model Switch": I2VModelSwitch,
     "I2I Model Switch": I2IModelSwitch,
+    "Image Editing Model Switch": ImageEditingModelSwitch,
     "LM Studio T2T": LMST2T,
     "LM Studio I2T": LMSI2T
 }
@@ -477,6 +513,7 @@ NODE_DISPLAY_NAME_MAPPINGS = {
     "T2I Model Switch": "T2I Model Switch",
     "I2V Model Switch": "I2V Model Switch",
     "I2I Model Switch": "I2I Model Switch",
+    "Image Editing Model Switch": "Image Editing Model Switch",
     "LM Studio T2T": "LM Studio T2T",
     "LM Studio I2T": "LM Studio I2T"
 }

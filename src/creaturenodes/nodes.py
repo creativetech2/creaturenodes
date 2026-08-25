@@ -284,11 +284,15 @@ class I2VModelSwitch:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "selected_model": (["LTX 2.0"],)
+                "selected_model": (["LTX 2.0", "MiniMax H3", "MiniMax H3 Ref"],)
             },
             "optional": {
                 "ltx_20_image": ("IMAGE", {"lazy": True}),
                 "ltx_20_audio": ("AUDIO", {"lazy": True}),
+                "mm_h3_image": ("IMAGE", {"lazy": True}),
+                "mm_h3_audio": ("AUDIO", {"lazy": True}),
+                "mm_h3_ref_image": ("IMAGE", {"lazy": True}),
+                "mm_h3_ref_audio": ("AUDIO", {"lazy": True}),
             }
         }
     RETURN_TYPES = ("IMAGE", "AUDIO",)
@@ -299,19 +303,31 @@ class I2VModelSwitch:
         self,
         selected_model,
         ltx_20_image=None,
-        ltx_20_audio=None
+        ltx_20_audio=None,
+        mm_h3_image=None,
+        mm_h3_audio=None,
+        mm_h3_ref_image=None,
+        mm_h3_ref_audio=None
     ):
         needed = []
         if selected_model == "LTX 2.0":
             if ltx_20_image is None: needed.append("ltx_20_image")
             if ltx_20_audio is None: needed.append("ltx_20_audio")
+        elif selected_model == "MiniMax H3":
+            if mm_h3_image is None: needed.append("mm_h3_image")
+            if mm_h3_audio is None: needed.append("mm_h3_audio")
+        elif selected_model == "MiniMax H3 Ref":
+            if mm_h3_ref_image is None: needed.append("mm_h3_ref_image")
+            if mm_h3_ref_audio is None: needed.append("mm_h3_ref_audio")
         
         return needed
     
-    def i2v_model_switch(self, selected_model, ltx_20_image=None, ltx_20_audio=None):
+    def i2v_model_switch(self, selected_model, ltx_20_image=None, ltx_20_audio=None, mm_h3_image=None, mm_h3_audio=None, mm_h3_ref_image=None, mm_h3_ref_audio=None):
         
         modelEnum = {
             'LTX 2.0': (ltx_20_image, ltx_20_audio,),
+            'MiniMax H3': (mm_h3_image, mm_h3_audio,),
+            'MiniMax H3 Ref': (mm_h3_ref_image, mm_h3_ref_audio,),
         }
         
         return modelEnum[selected_model]
@@ -362,10 +378,11 @@ class ImageEditingModelSwitch:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "selected_model": (["Lucy Edit V1.1 Dev"],)
+                "selected_model": (["Lucy Edit V1.1 Dev", "Seedance 2.5"],)
             },
             "optional": {
                 "lucy_edit_v11_dev": ("IMAGE", {"lazy": True}),
+                "seedance_25": ("IMAGE", {"lazy": True})
             }
         }
     RETURN_TYPES = ("IMAGE",)
@@ -375,18 +392,22 @@ class ImageEditingModelSwitch:
     def check_lazy_status(
         self,
         selected_model,
-        lucy_edit_v11_dev=None
+        lucy_edit_v11_dev=None,
+        seedance_25=None
     ):
         needed = []
         if selected_model == "Lucy Edit V1.1 Dev":
             if lucy_edit_v11_dev is None: needed.append("lucy_edit_v11_dev")
+        elif selected_model == "Seedance 2.5":
+            if seedance_25 is None: needed.append("seedance_25")
         
         return needed
     
-    def image_editing_model_switch(self, selected_model, lucy_edit_v11_dev=None):
+    def image_editing_model_switch(self, selected_model, lucy_edit_v11_dev=None, seedance_25=None):
         
         modelEnum = {
-            "Lucy Edit V1.1 Dev": lucy_edit_v11_dev
+            "Lucy Edit V1.1 Dev": lucy_edit_v11_dev,
+            "Seedance 2.5": seedance_25
         }
         
         return (modelEnum[selected_model],)
